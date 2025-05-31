@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Book Manager</title>
+</head>
+<body>
+  <h1>Book Manager</h1>
+
+  <h2>Add Book</h2>
+  <form id="addBookForm">
+    <input type="number" id="addId" placeholder="ID" required />
+    <input type="text" id="addTitle" placeholder="Title" required />
+    <input type="text" id="addAuthor" placeholder="Author" required />
+    <button type="submit">Add Book</button>
+  </form>
+
+  <h2>Update Book</h2>
+  <form id="updateBookForm">
+    <input type="number" id="updateId" placeholder="ID" required />
+    <input type="text" id="updateTitle" placeholder="New Title" />
+    <input type="text" id="updateAuthor" placeholder="New Author" />
+    <button type="submit">Update Book</button>
+  </form>
+
+  <h2>Books List</h2>
+  <button id="loadBooks">Load Books</button>
+  <ul id="booksList"></ul>
+
+  <script>
+    const API_URL = 'http://localhost:3000/books';
+
+    // Add book
+    document.getElementById('addBookForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('addId').value);
+      const title = document.getElementById('addTitle').value.trim();
+      const author = document.getElementById('addAuthor').value.trim();
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, title, author })
+      });
+
+      if (response.ok) {
+        alert('Book added!');
+        loadBooks();
+        e.target.reset();
+      } else {
+        alert('Failed to add book');
+      }
+    });
+
+    // Update book
+    document.getElementById('updateBookForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('updateId').value);
+      const title = document.getElementById('updateTitle').value.trim();
+      const author = document.getElementById('updateAuthor').value.trim();
+
+      const updateData = {};
+      if (title) updateData.title = title;
+      if (author) updateData.author = author;
+
+      if (Object.keys(updateData).length === 0) {
+        alert('Enter title or author to update');
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+
+      if (response.ok) {
+        alert('Book updated!');
+        loadBooks();
+        e.target.reset();
+      } else {
+        alert('Failed to update book');
+      }
+    });
+
+    // Load books
+    document.getElementById('loadBooks').addEventListener('click', loadBooks);
+
+    async function loadBooks() {
+      const res = await fetch(API_URL);
+      const books = await res.json();
+      const list = document.getElementById('booksList');
+      list.innerHTML = '';
+      books.forEach(book => {
+        const li = document.createElement('li');
+        li.textContent = `ID: ${book.id}, Title: ${book.title}, Author: ${book.author}`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
